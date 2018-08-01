@@ -12,6 +12,7 @@ import (
 
 	"github.com/roboll/helmfile/helmexec"
 	"github.com/roboll/helmfile/state"
+	"github.com/subosito/gotenv"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -84,6 +85,10 @@ func main() {
 	A release must match all labels in a group in order to be used. Multiple groups can be specified at once.
 	--selector tier=frontend,tier!=proxy --selector tier=backend. Will match all frontend, non-proxy releases AND all backend releases.
 	The name of a release can be used as a label. --selector name=myrelease`,
+		},
+		cli.StringFlag{
+			Name:  "env-file",
+			Usage: "Read in a file of environment variables",
 		},
 	}
 
@@ -460,6 +465,11 @@ func loadDesiredStateFromFile(c *cli.Context, file string) (*state.HelmState, he
 	kubeContext := c.GlobalString("kube-context")
 	namespace := c.GlobalString("namespace")
 	labels := c.GlobalStringSlice("selector")
+	envFile := c.GlobalString("env-file")
+
+	if envFile != "" {
+		gotenv.Load(envFile)
+	}
 
 	st, err := state.ReadFromFile(file)
 	if err != nil {
